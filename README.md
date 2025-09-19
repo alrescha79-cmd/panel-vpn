@@ -3,9 +3,10 @@
 1. UNTUK UBUNTU 24
    INSTALL VIRTUAL MACHINE LXD
 
-```cd root
+```
+cd root
 rm virtual
-apt install -y && apt update -y && apt upgrade -y && wget -q https://raw.githubusercontent.com/hokagelegend9999/install/refs/heads/main/virtual && chmod +x virtual && ./virtual
+apt install -y && apt update -y && apt upgrade -y && wget -q https://raw.githubusercontent.com/alrescha79-cmd/panel-vpn/refs/heads/main/virtual?token=GHSAT0AAAAAADINNV576CB74IBALRL5QEOK2GMX5XQ && chmod +x virtual && ./virtual
 cd root
 rm virtual
 ```
@@ -20,12 +21,12 @@ cd
 rm port.sh
 ```
 
-3.  NTUK DEBIAN 12
+3.  UNTUK DEBIAN 12
 
 ```
 cd root
 rm virtual_debian12
-apt install -y && apt update -y && apt upgrade -y && wget -q https://raw.githubusercontent.com/hokagelegend9999/install/refs/heads/main/virtual_debian12 && chmod +x virtual_debian12 && ./virtual_debian12
+apt install -y && apt update -y && apt upgrade -y && wget -q https://raw.githubusercontent.com/alrescha79-cmd/panel-vpn/refs/heads/main/virtual_debian12?token=GHSAT0AAAAAADINNV56WQJAMNLADD3NMZ6C2GMX6WA2 && chmod +x virtual_debian12 && ./virtual_debian12
 cd root
 rm virtual_debian12
 ```
@@ -49,7 +50,7 @@ SELESAI
  ```
 cd root
 rm install_ulang_virtual
-wget -q https://raw.githubusercontent.com/hokagelegend9999/install/refs/heads/main/install_ulang_virtual && chmod +x install_ulang_virtual && ./install_ulang_virtual
+wget -q https://raw.githubusercontent.com/alrescha79-cmd/panel-vpn/refs/heads/main/install_ulang_virtual?token=GHSAT0AAAAAADINNV57OKF6C2REUFNWOXNU2GMX7KQ && chmod +x install_ulang_virtual && ./install_ulang_virtual
 cd root
 rm install_ulang_virtual
 ```
@@ -63,12 +64,12 @@ Tampilan utama dari aplikasi ini dirancang agar mudah digunakan dan responsif, m
 ### INSTALL SCRIPT 
 
 ```
-apt install -y && apt update -y && apt upgrade -y && wget -q https://raw.githubusercontent.com/hokagelegend9999/install/refs/heads/main/alphav2 && chmod +x alphav2 && ./alphav2
+apt install -y && apt update -y && apt upgrade -y && wget -q https://raw.githubusercontent.com/alrescha79-cmd/panel-vpn/refs/heads/main/alphav2?token=GHSAT0AAAAAADINNV56A32ZKSJQ3E7EZMT42GMX7ZA && chmod +x alphav2 && ./alphav2
 ```
 
 ## UPDATE SCRIPT
 ```
-wget -q https://github.com/hokagelegend9999/install/raw/refs/heads/main/update_alphav2 && chmod +x update_alphav2 && ./update_alphav2
+wget -q https://raw.githubusercontent.com/alrescha79-cmd/panel-vpn/refs/heads/main/update_alphav2?token=GHSAT0AAAAAADINNV57UG5WD4GCUIZI3Z2U2GMYAGQ && chmod +x update_alphav2 && ./update_alphav2
 ```
 
 ### SUPPORT OS LINUX
@@ -134,7 +135,7 @@ wget https://raw.githubusercontent.com/hokagelegend9999/alpha.v2/refs/heads/main
 ### INSTALL SCRIPT 
 
 ```
-apt install -y && apt update -y && apt upgrade -y && wget -q https://github.com/hokagelegend9999/install/raw/refs/heads/main/coklat && chmod +x coklat && ./coklat
+apt install -y && apt update -y && apt upgrade -y && wget -q https://raw.githubusercontent.com/alrescha79-cmd/panel-vpn/refs/heads/main/coklat?token=GHSAT0AAAAAADINNV57PW3K2QUSVDNNKJMS2GMYBLA && chmod +x coklat && ./coklat
 ```
 
 
@@ -175,7 +176,7 @@ apt install -y && apt update -y && apt upgrade -y && wget -q https://raw.githubu
 3 : UPDATE SCRIPT HUMBLE
 
 ```
-wget -q  https://raw.githubusercontent.com/hokagelegend9999/install/refs/heads/main/update_humble &&  chmod +x update_humble && ./update_humble
+wget -q  https://raw.githubusercontent.com/alrescha79-cmd/panel-vpn/refs/heads/main/humble?token=GHSAT0AAAAAADINNV57VMEZDW3F4BWMGW3S2GMYCGQ &&  chmod +x update_humble && ./update_humble
 ```
 
 -------------------------------------------------------------------------------------------------------------------------------------------
@@ -206,7 +207,7 @@ apt update && apt upgrade -y && apt install -y wget screen && wget -q https://ra
 
 3:    
 ➽ Pastikan anda sudah login sebagai root :    
-<pre><code>apt install tmux -y && wget -q https://raw.githubusercontent.com/hokagelegend9999/install/refs/heads/main/gas && chmod +x gas && tmux new-session -d -s hokagelegend './gas' && tmux attach -t hokagelegend</code></pre>
+<pre><code>apt install tmux -y && wget -q https://raw.githubusercontent.com/alrescha79-cmd/panel-vpn/refs/heads/main/gas?token=GHSAT0AAAAAADINNV56MVEYDK2P5MMV234E2GMYDNA && chmod +x gas && tmux new-session -d -s hokagelegend './gas' && tmux attach -t hokagelegend</code></pre>
 
 4 :     
 ➽ If during the installation connection was lost, login to the vps again and run the command ☞shell
@@ -234,7 +235,7 @@ apt-get update && apt-get upgrade -y && apt dist-upgrade -y && update-grub
 ### INSTALL SCRIPT 
 
 
-<pre><code> wget -q https://raw.githubusercontent.com/hokagelegend9999/install/refs/heads/main/Genom_v1 && chmod +x Genom_v1  && ./Genom_v1 
+<pre><code> wget -q https://raw.githubusercontent.com/alrescha79-cmd/panel-vpn/refs/heads/main/Genom_v1?token=GHSAT0AAAAAADINNV56CCCWXKMX5PNFZH3M2GMYE4A && chmod +x Genom_v1  && ./Genom_v1 
 </code></pre>
 
 
