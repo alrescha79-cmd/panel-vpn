@@ -66,7 +66,7 @@ while true; do
     fi
 
     # Menggunakan curl untuk memeriksa apakah client_name ada dalam file permission.txt
-    permission_file=$(curl -s https://raw.githubusercontent.com/alrescha79-cmd/panel-vpn-akses/refs/heads/main/gnome?token=GHSAT0AAAAAADINNV57A23P5SZL2DWROINW2GMWP5Q)
+    permission_file=$(curl -s https://raw.githubusercontent.com/alrescha79-cmd/panel-vpn-akses/refs/heads/main/gnome)
     
     # Mengambil IP_VPS juga untuk validasi di izin.txt
     IP_VPS=$(curl -s https://ipinfo.io/ip) # Pastikan ini mengambil IP publik
