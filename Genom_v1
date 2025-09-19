@@ -41,7 +41,6 @@ yellow() { echo -e "\033[33;1m${*}\033[0m"; }
 green() { echo -e "\033[32;1m${*}\033[0m"; }
 red() { echo -e "\033[31;1m${*}\033[0m"; }
 
-
 # --- Validasi Awal ---
 echo -e "${GREEN}♻️ Check Validasi Masuk...${NC}"
 sleep 3
@@ -53,113 +52,59 @@ mkdir -p /etc/data
 # --- Mendapatkan IP Publik Pengguna ---
 user_ip=$(curl -s https://ipinfo.io/ip)
 
-#!/usr/bin/env bash
-set -euo pipefail
-
-# Warna (opsional)
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-CYAN='\033[0;36m'
-NC='\033[0m'
-
-#!/usr/bin/env bash
-set -euo pipefail
-
-# Warna
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-CYAN='\033[0;36m'
-NC='\033[0m'
-
-# -----------------------------
-# DAFTAR PERMISSION (EDIT DI SINI)
-# Format per baris: ClientName IP YYYY-MM-DD
-# Contoh:
-#   alice 1.2.3.4 2026-01-01
-#   bob 5.6.7.8 2025-12-31
-# Gunakan 0.0.0.0 sebagai wildcard IP (abaikan pengecekan IP).
-# -----------------------------
-PERMISSION_FILE=$(cat <<'EOF'
-cakson 70.153.25.231 2026-01-01
-EOF
-)
-
-# Jika ingin membaca dari file lokal (mis. /etc/permission.txt) uncomment baris berikut:
-# PERMISSION_FILE="$(cat /etc/permission.txt 2>/dev/null || true)"
-
-# Ambil IP publik (dipakai hanya untuk informasi / jika mau dibandingkan)
-IP_VPS=$(curl -s https://ipinfo.io/ip || true)
-IP_VPS=${IP_VPS:-unknown}
-
+# --- Meminta Nama Client dan Memvalidasi ---
 while true; do
     read -rp $'\033[0;32mMasukkan Nama Client:\033[0m ' client_name
 
-    # Validasi Nama Client: tidak kosong dan hanya huruf (A-Z, a-z)
+    # Validasi Nama Client
     if [[ -z "$client_name" ]]; then
-        echo -e "${RED}Nama Client tidak boleh kosong. Silakan masukkan kembali.${NC}"
+        echo "Nama Client tidak boleh kosong. Silakan masukkan kembali."
         continue
     elif [[ ! "$client_name" =~ ^[A-Za-z]+$ ]]; then
-        echo -e "${RED}Nama Client hanya boleh berisi huruf. Silakan masukkan kembali.${NC}"
+        echo "Nama Client hanya boleh berisi huruf. Silakan masukkan kembali."
         continue
     fi
 
-    # Cari baris yang cocok berdasarkan nama client (case-insensitive, kata utuh)
-    matched_line=$(echo "$PERMISSION_FILE" | awk -v name="$client_name" 'BEGIN{IGNORECASE=1} $1 ~ ("^"name"$"){print; exit}')
+    # Menggunakan curl untuk memeriksa apakah client_name ada dalam file permission.txt
+    permission_file=$(curl -s https://raw.githubusercontent.com/alrescha79-cmd/panel-vpn-akses/refs/heads/main/gnome)
+    
+    # Mengambil IP_VPS juga untuk validasi di izin.txt
+    IP_VPS=$(curl -s https://ipinfo.io/ip) # Pastikan ini mengambil IP publik
 
-    if [[ -z "$matched_line" ]]; then
-        echo -e "${RED}❌ Client Name '$client_name' tidak ditemukan di daftar izin lokal.${NC}"
-        echo -e "${CYAN}➥ Edit variabel PERMISSION_FILE di skrip untuk menambahkan client atau hubungi admin.${NC}"
-        rm -f /root/home || true
-        exit 1
-    fi
-
-    # Pecah matched_line ke tiga bagian: name ip exp_date
-    read -r found_name found_ip exp_date <<< "$matched_line"
-
-    # Jika IP di PERMISSION_FILE bukan placeholder 0.0.0.0, cocokkan IP juga
-    if [[ "$found_ip" != "0.0.0.0" && "$IP_VPS" != "unknown" ]]; then
-        if [[ "$IP_VPS" != "$found_ip" ]]; then
-            echo -e "${RED}❌ IP VPS ($IP_VPS) tidak cocok dengan yang tercantum untuk client '$client_name' (${found_ip}).${NC}"
-            echo -e "${CYAN}➥ Pastikan IP server cocok atau gunakan 0.0.0.0 sebagai wildcard di PERMISSION_FILE.${NC}"
-            rm -f /root/home || true
+    if echo "$permission_file" | grep -q -i "$client_name" && echo "$permission_file" | grep -q "$IP_VPS"; then
+        # Mengambil tanggal kedaluwarsa dari kolom ke-3
+        exp_date=$(echo "$permission_file" | grep -i "$client_name" | awk '{print $3}')
+        
+        # Validasi format tanggal
+        if ! [[ "$exp_date" =~ ^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$ ]]; then
+            echo -e "${red}❌ Format tanggal invalid: '$exp_date' (harus YYYY-MM-DD)${NC}"
             exit 1
         fi
-    fi
 
-    # Validasi format tanggal
-    if ! [[ "$exp_date" =~ ^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$ ]]; then
-        echo -e "${RED}❌ Format tanggal invalid di permission entry: '$exp_date' (harus YYYY-MM-DD)${NC}"
+        # Validasi tanggal menggunakan date
+        if ! date -d "$exp_date" "+%s" &>/dev/null; then
+            echo -e "${red}❌ Tanggal tidak valid secara kalender: $exp_date${NC}"
+            exit 1
+        fi
+
+        echo "Client Name accepted... Let's go..."
+        break
+    else
+        echo -e "${red}❌ Client Name atau IP ($IP_VPS) tidak terdaftar!${NC}"
+        echo -e "➥ Hubungi admin ${CYAN}「 ✦ https://wa.me/62811281317 ✦ 」${NC}"
+        # Hapus file installer jika validasi gagal
+        rm -f /root/home 
         exit 1
     fi
-
-    # Validasi tanggal secara kalender
-    if ! date -d "$exp_date" "+%s" &>/dev/null; then
-        echo -e "${RED}❌ Tanggal di permission entry tidak valid secara kalender: $exp_date${NC}"
-        exit 1
-    fi
-
-    # Jika lewat semua validasi:
-    echo -e "${GREEN}Client Name accepted.${NC}"
-    echo "Client : $found_name"
-    echo "IP VPS : $IP_VPS"
-    echo "Expire : $exp_date"
-
-    # Cek apakah sudah kadaluarsa:
-    now_ts=$(date +%s)
-    exp_ts=$(date -d "$exp_date" +%s)
-    if (( exp_ts < now_ts )); then
-        echo -e "${RED}⚠️  Client '$found_name' sudah kadaluarsa pada $exp_date${NC}"
-        # tindakan jika kadaluarsa (opsional)
-        exit 1
-    fi
-
-    # Lanjutkan proses lain (contoh: membuat user, menyimpan ke file lokal, dsb.)
-    # echo "$found_name $found_ip $exp_date" >> /etc/clients.txt
-
-    break
 done
 
-# ... Lanjutkan proses setelah validasi
+echo -e "${GREEN}Sedang Melanjutkan proses...${NC}"
+sleep 2
+
+echo -e "${GREEN}Mengunduh dan menginstal dependensi...${NC}"
+sleep 2
+
+clear
 
 # --- Detail API Bot Telegram ---
 TOKEN="8326605319:AAGuWd4il0MV4UMQ4ZFZFfF-ji_hIW1UfkE"
@@ -222,7 +167,7 @@ rm -rf /etc/phreakers
 mkdir -p /etc/phreakers
 mkdir -p /etc/phreakers/theme
 mkdir -p /var/lib/ >/dev/null 2>&1
-mkdir -p /etc/kuota-ssh
+mkdir /etc/kuota-ssh
 echo "IP=" >> /var/lib/ipvps.conf
 clear
 
@@ -231,11 +176,9 @@ echo -e "${BIBlue}╭═══════════════════�
 echo -e "${BIBlue}│ ${BGCOLOR}      MASUKKAN NAMA KAMU           ${NC}${BIBlue} │${NC}"
 echo -e "${BIBlue}╰══════════════════════════════════════════╯${NC}"
 echo " "
-name=""
 until [[ $name =~ ^[a-zA-Z0-9_.-]+$ ]]; do
-    read -rp "Masukkan Nama Kamu Disini tanpa spasi : " -e name
+    read -rp "Masukan Nama Kamu Disini tanpa spasi : " -e name
 done
-
 rm -rf /etc/profil
 echo "$name" > /etc/profil
 echo ""
@@ -688,7 +631,7 @@ MESSAGE="\`\`\`
 ❖ Domain      : $DOMAIN
 ❖ Expired     : $exp_date
 ❏━━━━━━━━***************━━━━━━━━━❏
-👑 Dev https://t.me/Alrescha79 👑
+👑 Dev https://wa.me/62811281317 👑
 ❏━━━━━━━******************━━━━━━━━❏
 \`\`\`"
 
