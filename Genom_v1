@@ -42,8 +42,133 @@ green() { echo -e "\033[32;1m${*}\033[0m"; }
 red() { echo -e "\033[31;1m${*}\033[0m"; }
 
 
+# --- Validasi Awal ---
+echo -e "${GREEN}♻️ Check Validasi Masuk...${NC}"
+sleep 3
+clear
+
 # Pastikan direktori yang dibutuhkan ada
 mkdir -p /etc/data
+
+# --- Mendapatkan IP Publik Pengguna ---
+user_ip=$(curl -s https://ipinfo.io/ip)
+
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Warna (opsional)
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+while true; do
+    read -rp $'\033[0;32mMasukkan Nama Client:\033[0m ' client_name
+
+    # Validasi Nama Client: tidak kosong dan hanya huruf (A-Z, a-z)
+    if [[ -z "$client_name" ]]; then
+        echo -e "${RED}Nama Client tidak boleh kosong. Silakan masukkan kembali.${NC}"
+        continue
+    elif [[ ! "$client_name" =~ ^[A-Za-z]+$ ]]; then
+        echo -e "${RED}Nama Client hanya boleh berisi huruf. Silakan masukkan kembali.${NC}"
+        continue
+    fi
+
+    # Pilihan bypass atau cek remote
+    read -rp $'\033[0;36mBypass pengecekan GitHub dan gunakan data langsung? [Y/n]:\033[0m ' bypass_choice
+    bypass_choice=${bypass_choice:-Y}
+
+    # Ambil IP publik (dipakai hanya untuk informasi / jika mau dibandingkan)
+    IP_VPS=$(curl -s https://ipinfo.io/ip || true)
+
+    if [[ "$bypass_choice" =~ ^([yY]|)$ ]]; then
+        # Mode bypass: minta tanggal kedaluwarsa manual atau default +30 hari
+        while true; do
+            read -rp $'\033[0;32mMasukkan tanggal kedaluwarsa (YYYY-MM-DD) [enter untuk +30 hari]:\033[0m ' exp_date
+
+            if [[ -z "$exp_date" ]]; then
+                # set default +30 hari
+                exp_date=$(date -d "+30 days" '+%Y-%m-%d' 2>/dev/null) || {
+                    echo -e "${RED}Gagal menghitung tanggal default. Pastikan utilitas date tersedia.${NC}"
+                    exit 1
+                }
+                echo -e "${CYAN}Tanggal kedaluwarsa otomatis: $exp_date${NC}"
+            fi
+
+            # Validasi format tanggal (YYYY-MM-DD)
+            if ! [[ "$exp_date" =~ ^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$ ]]; then
+                echo -e "${RED}❌ Format tanggal invalid: '$exp_date' (harus YYYY-MM-DD)${NC}"
+                continue
+            fi
+
+            # Validasi tanggal secara kalender
+            if ! date -d "$exp_date" "+%s" &>/dev/null; then
+                echo -e "${RED}❌ Tanggal tidak valid secara kalender: $exp_date${NC}"
+                continue
+            fi
+
+            # Jika semua OK, keluar dari loop tanggal
+            break
+        done
+
+        echo -e "${GREEN}Client Name accepted (bypass mode).${NC}"
+        echo "Client: $client_name"
+        echo "IP VPS: ${IP_VPS:-(tidak diketahui)}"
+        echo "Expire: $exp_date"
+
+        # Di sini kamu bisa menambahkan perintah untuk membuat user / menyimpan ke file / menambahkan ke izin lokal
+        # Contoh: menyimpan ke /etc/clients.txt (pastikan permission)
+        # echo "$client_name $IP_VPS $exp_date" >> /etc/clients.txt
+
+        break
+
+    else
+        # Mode normal: cek dari GitHub (seperti aslinya). Jika file unreachable, tampilkan pesan.
+        permission_file=$(curl -s https://raw.githubusercontent.com/alrescha79-cmd/panel-vpn-akses/refs/heads/main/gnome || true)
+
+        if [[ -z "$permission_file" ]]; then
+            echo -e "${RED}Gagal mengambil permission file dari GitHub. Gunakan mode bypass jika ingin menambahkan langsung.${NC}"
+            # opsi: tanya lagi atau exit
+            read -rp $'\033[0;31mMau coba lagi? [Y/n]:\033[0m ' retry_choice
+            retry_choice=${retry_choice:-Y}
+            if [[ "$retry_choice" =~ ^([yY]|)$ ]]; then
+                continue
+            else
+                echo -e "${RED}Proses dibatalkan.${NC}"
+                exit 1
+            fi
+        fi
+
+        # Cek apakah client_name dan IP_VPS ada di permission_file
+        if echo "$permission_file" | grep -q -i "$client_name" && echo "$permission_file" | grep -q "$IP_VPS"; then
+            exp_date=$(echo "$permission_file" | grep -i "$client_name" | awk '{print $3}')
+
+            # Validasi tanggal seperti semula
+            if ! [[ "$exp_date" =~ ^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$ ]]; then
+                echo -e "${RED}❌ Format tanggal invalid di permission file: '$exp_date' (harus YYYY-MM-DD)${NC}"
+                exit 1
+            fi
+            if ! date -d "$exp_date" "+%s" &>/dev/null; then
+                echo -e "${RED}❌ Tanggal di permission file tidak valid secara kalender: $exp_date${NC}"
+                exit 1
+            fi
+
+            echo -e "${GREEN}Client Name accepted (verified via GitHub).${NC}"
+            echo "Client: $client_name"
+            echo "IP VPS: ${IP_VPS:-(tidak diketahui)}"
+            echo "Expire: $exp_date"
+            break
+        else
+            echo -e "${RED}❌ Client Name atau IP ($IP_VPS) tidak terdaftar di permission file!${NC}"
+            echo -e "➥ Hubungi admin ${CYAN}「 ✦ https://wa.me/62811281317 ✦ 」${NC}"
+            # Hapus file installer jika validasi gagal (sama seperti sebelumnya)
+            rm -f /root/home || true
+            exit 1
+        fi
+    fi
+done
+
+# Lanjutkan proses berikutnya setelah validasi / bypass
 
 
 # --- Detail API Bot Telegram ---
